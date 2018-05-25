@@ -27,7 +27,7 @@ func main() {
 	files, err := ioutil.ReadDir(filePath)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Errorf("%s", err)
 	}
 
 	var i int
