@@ -1,7 +1,7 @@
 package namecalculator
 
-import "os"
+import "image"
 
 type Interface interface {
-	Rename(os.FileInfo) (string, error)
+	Rename(image.Image) (string, error)
 }

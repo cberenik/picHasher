@@ -1,20 +1,20 @@
 package main
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
-	"io"
+	"image"
+	_ "image/jpeg"
+	_ "image/png"
 	"io/ioutil"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
-	"namecalculator"
+	namecalculator "github.com/cberenik/picHasher/name-calculator"
 )
 
 func main() {
+
 	startTime := time.Now()
 
 	args := os.Args[1:]
@@ -32,52 +32,50 @@ func main() {
 		os.Exit(-1)
 	}
 
-	images := []string{}
+	images := []os.FileInfo{}
 
 	for _, file := range fileInfos {
 		if isImage(file) {
-			images = append(images, file.Name())
+			images = append(images, file)
 		}
 	}
 
 	if len(images) > 0 {
 
-		for file := range fileInfos {
-			nameCalc := &namecalculator.BasicNameCalculator{}
+		nameCalc := &namecalculator.BasicNameCalculator{}
 
+		for _, fileInfo := range images {
+
+			file, err := os.Open(filePath + fileInfo.Name())
+			if err != nil {
+				fmt.Println(fmt.Sprintf("opening file failed: %s", err))
+				continue
+			}
+			defer file.Close()
+			img, format, err := image.Decode(file)
+			if err != nil {
+				fmt.Println(fmt.Sprintf("decoding image failed: %s", err))
+				continue
+			}
+
+			newName, err := nameCalc.Rename(img)
+			if err != nil {
+				fmt.Println(fmt.Sprintf("calculating new name failed: %s", err))
+				continue
+			}
+			fmt.Println(newName)
+
+			// err = os.Rename(path+oldName, path+newName+"."+strings.ToLower(extension))
+
+			// if err != nil {
+			// 	fmt.Println(err.Error())
+			// }
 		}
 
-		// TODO: send images to channels to calculate dominant image colors and rename them
-		// Don't load all images at the same time though, don't have infinite RAM
-
 	}
-
 	endTime := time.Now()
 	elapsed := endTime.Sub(startTime)
 	fmt.Printf("Completed in %v seconds", elapsed.Seconds())
-}
-
-func rename(path string, oldName string, wg *sync.WaitGroup) {
-	defer wg.Done()
-	h := md5.New()
-
-	parts := strings.Split(oldName, ".")
-	name := strings.Join(parts[:len(parts)-1], ".")
-	extension := parts[len(parts)-1]
-
-	imgBytes, err := ioutil.ReadFile(path + oldName)
-	if err != nil {
-		fmt.Printf("%s%s.%s not found\n", path, name, extension)
-		return
-	}
-
-	io.WriteString(h, string(imgBytes))
-	hashString := hex.EncodeToString(h.Sum(nil))
-	err = os.Rename(path+oldName, path+hashString+"."+strings.ToLower(extension))
-
-	if err != nil {
-		fmt.Println(err.Error())
-	}
 }
 
 func isImage(file os.FileInfo) bool {
