@@ -34,6 +34,7 @@ func Test_isImage(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%s", tc.in), func(t *testing.T) {
+			// TODO: make image structs to run these tests
 			result := isImage(tc.in)
 			if result != tc.expect {
 				t.Errorf("Expected %t, got %t", tc.expect, result)

@@ -10,6 +10,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"namecalculator"
 )
 
 func main() {
@@ -17,30 +19,39 @@ func main() {
 
 	args := os.Args[1:]
 	var filePath string
-	var wg sync.WaitGroup
 
 	if len(args) == 0 {
 		filePath = "./"
 	} else {
 		filePath = args[0]
 	}
-	files, err := ioutil.ReadDir(filePath)
 
+	fileInfos, err := ioutil.ReadDir(filePath)
 	if err != nil {
-		fmt.Errorf("%s", err)
+		fmt.Println(fmt.Sprintf("Failed read files from directory\n%s", err))
+		os.Exit(-1)
 	}
 
-	var i int
+	images := []string{}
 
-	for _, file := range files {
-		if isImage(file.Name()) {
-			wg.Add(1)
-			go rename(filePath+"/", file.Name(), &wg)
-			i = i + 1
+	for _, file := range fileInfos {
+		if isImage(file) {
+			images = append(images, file.Name())
 		}
 	}
 
-	wg.Wait()
+	if len(images) > 0 {
+
+		for file := range fileInfos {
+			nameCalc := &namecalculator.BasicNameCalculator{}
+
+		}
+
+		// TODO: send images to channels to calculate dominant image colors and rename them
+		// Don't load all images at the same time though, don't have infinite RAM
+
+	}
+
 	endTime := time.Now()
 	elapsed := endTime.Sub(startTime)
 	fmt.Printf("Completed in %v seconds", elapsed.Seconds())
@@ -69,7 +80,10 @@ func rename(path string, oldName string, wg *sync.WaitGroup) {
 	}
 }
 
-func isImage(fileName string) bool {
-	lowered := strings.ToLower(fileName)
+func isImage(file os.FileInfo) bool {
+	if file.IsDir() {
+		return false
+	}
+	lowered := strings.ToLower(file.Name())
 	return strings.Contains(lowered, ".jpg") || strings.Contains(lowered, ".png") || strings.Contains(lowered, ".jpeg")
 }
