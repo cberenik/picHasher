@@ -1,1 +1,1 @@
-Add readme to set up token on my laptop, more to come once I finish the work currently on my desktop
+Playing around with go

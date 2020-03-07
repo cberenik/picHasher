@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
-	_ "image/jpeg"
+	_ "image/jpeg" // imported with underscore to register image type with image.Decode
 	_ "image/png"
 	"io/ioutil"
 	"os"
@@ -32,19 +32,19 @@ func main() {
 		os.Exit(-1)
 	}
 
-	images := []os.FileInfo{}
+	imageFiles := []os.FileInfo{}
 
 	for _, file := range fileInfos {
 		if isImage(file) {
-			images = append(images, file)
+			imageFiles = append(imageFiles, file)
 		}
 	}
 
-	if len(images) > 0 {
+	if len(imageFiles) > 0 {
 
 		nameCalc := &namecalculator.BasicNameCalculator{}
 
-		for _, fileInfo := range images {
+		for _, fileInfo := range imageFiles {
 
 			file, err := os.Open(filePath + fileInfo.Name())
 			if err != nil {
@@ -52,7 +52,8 @@ func main() {
 				continue
 			}
 			defer file.Close()
-			img, format, err := image.Decode(file)
+			// img, format, err := image.Decode(file)
+			img, _, err := image.Decode(file)
 			if err != nil {
 				fmt.Println(fmt.Sprintf("decoding image failed: %s", err))
 				continue
@@ -65,7 +66,7 @@ func main() {
 			}
 			fmt.Println(newName)
 
-			// err = os.Rename(path+oldName, path+newName+"."+strings.ToLower(extension))
+			// err = os.Rename(filePath+fileInfo.Name(), filePath+newName+"."+strings.ToLower(format))
 
 			// if err != nil {
 			// 	fmt.Println(err.Error())
@@ -78,10 +79,16 @@ func main() {
 	fmt.Printf("Completed in %v seconds", elapsed.Seconds())
 }
 
-func isImage(file os.FileInfo) bool {
+func isImage(file FileData) bool {
 	if file.IsDir() {
 		return false
 	}
 	lowered := strings.ToLower(file.Name())
 	return strings.Contains(lowered, ".jpg") || strings.Contains(lowered, ".png") || strings.Contains(lowered, ".jpeg")
+}
+
+// FileData is a smaller interace than FileInfo so I don't have to fulfill that interface in tests
+type FileData interface {
+	Name() string
+	IsDir() bool
 }

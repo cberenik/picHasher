@@ -1,24 +1,40 @@
 package namecalculator
 
-import "image"
+import (
+	"fmt"
+	"image"
+)
 
+// BasicNameCalculator is a struct that given an image will rename the image
 type BasicNameCalculator struct{}
 
 func (bnc *BasicNameCalculator) Rename(img image.Image) (string, error) {
-	// h := md5.New()
-	// parts := strings.Split(oldName, ".")
-	// name := strings.Join(parts[:len(parts)-1], ".")
-	// extension := parts[len(parts)-1]
+	// jpeg (and possibly others) use different color models, convert them all to RGBA
+	rgba := &image.RGBA{}
+	pixelColor := rgba.ColorModel().Convert(img.At(0, 0))
 
-	// imgBytes, err := ioutil.ReadFile(path + oldName)
-	// if err != nil {
-	// 	fmt.Printf("%s%s.%s not found\n", path, name, extension)
-	// 	return "", err
+	red, green, blue, _ := pixelColor.RGBA()
+	// TODO: should actually add all the RGB in their own struct to see which color has the largest number maybe?
+	redDominant := 0
+	blueDominant := 0
+	greenDominant := 0
+
+	if red >= green && red >= blue {
+		redDominant += 1
+	} else if green >= red && green >= blue {
+		greenDominant += 1
+	} else {
+		blueDominant += 1
+	}
+
+	// var pixelColor color.Color
+	// if img.ColorModel() != color.RGBAModel {
+	// 	rgba := &image.RGBA{}
+	// 	pixelColor = rgba.ColorModel().Convert(img.At(0, 0))
+	// } else {
+	// 	pixelColor = img.At(0, 0)
 	// }
-
-	// io.WriteString(h, string(imgBytes))
-	// hashString := hex.EncodeToString(h.Sum(nil))
-	// return hashString, nil
-
+	// fmt.Println(fmt.Sprintf("%+v", imag.ColorModel().Convert(img.ColorModel())))
+	fmt.Println(fmt.Sprintf("%+v", pixelColor))
 	return "", nil
 }

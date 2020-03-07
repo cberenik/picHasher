@@ -5,29 +5,46 @@ import (
 	"testing"
 )
 
+type TestFileData struct {
+	name  string
+	isDir bool
+}
+
+func (tfd *TestFileData) Name() string {
+	return tfd.name
+}
+
+func (tfd *TestFileData) IsDir() bool {
+	return tfd.isDir
+}
+
 func Test_isImage(t *testing.T) {
 	testCases := []struct {
-		in     string
+		in     FileData
 		expect bool
 	}{
 		{
-			in:     "test.jpg",
+			in:     &TestFileData{name: "test.jpg", isDir: false},
 			expect: true,
 		},
 		{
-			in:     "test.Jpg",
+			in:     &TestFileData{name: "test.Jpg", isDir: false},
 			expect: true,
 		},
 		{
-			in:     "test.png",
+			in:     &TestFileData{name: "test.png", isDir: false},
 			expect: true,
 		},
 		{
-			in:     "test.JPEG",
+			in:     &TestFileData{name: "test.JPEG", isDir: false},
 			expect: true,
 		},
 		{
-			in:     "test.doc",
+			in:     &TestFileData{name: "test.doc", isDir: false},
+			expect: false,
+		},
+		{
+			in:     &TestFileData{name: "folder", isDir: true},
 			expect: false,
 		},
 	}
